@@ -7,6 +7,8 @@ const mongo = require('mongodb');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { requestBody, validationResult, body, header, param, query } = require('express-validator');
+require('dotenv').config();
+const key = require('./key');
 
 const route = express.Router();
 
@@ -85,8 +87,9 @@ var isAuthorisedAdmin = function(request,response,next){
 };
 
  var accountSid = 'AC4795b2534203c3773f137726ffe95b28';
- var authToken = '8b33eedaffa7883dacf818593f7ea47c';
-
+ //var authToken = '4f93e0610cb501ed54f8743d55dbfa6a';
+ var authToken = key;
+    console.log(key);
  var smsclient = new twilio(accountSid, authToken);
 
 route.use('/admin',verifyToken);
