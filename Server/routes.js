@@ -7,7 +7,6 @@ const mongo = require('mongodb');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { requestBody, validationResult, body, header, param, query } = require('express-validator');
-const key = require('./key');
 
 const route = express.Router();
 
@@ -85,9 +84,7 @@ var isAuthorisedAdmin = function(request,response,next){
     }
 };
 
- var accountSid = 'AC4795b2534203c3773f137726ffe95b28';
- var authToken = key;
- var smsclient = new twilio(accountSid, authToken);
+ var smsclient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 route.use('/admin',verifyToken);
 route.use(connectToDb);
@@ -265,7 +262,6 @@ route.post('/sms',(request,response)=>{
             }
             else if(user.step == 2 || user.step == 4 || user.step == 6){
                 var symptoms = user.userState;
-                //var symptomKeys = Object.keys(user.userState);
                 var currentSymptom = user.currentSymptom;
                 var history = user.history;
                 var msg="";
