@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal</title>
+    <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+
+<body>
+
+    <div class="login">
+        <h1>Login</h1>
+        <form action="javascript:void(0);" onsubmit="checkCredentials()">
+            <input type="text" id="username" name="u" placeholder="Username" required="required" />
+            <input type="password" id="password" name="p" placeholder="Password" required="required" />
+            <button type="submit" class="btn btn-primary btn-block btn-large">Login</button>
+        </form>
+    </div>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js"
+        integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg=="
+        crossorigin="anonymous"></script>
+    <script>
+
+        $(document).ready(function () {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('token'))
+                .split('=')[1];
+            if (cookieValue != '') {
+                const config = {
+                    headers: { Authorization: 'Bearer ' + cookieValue }
+                };
+                axios.get('http://64.227.27.167:1337/api/v1/admin/users', config).then(function (res) {
+                    window.location = '/users';
+                }).catch(function (err) {
+                    console.log(err);
+                    console.log("Session is expired. Please login again");
+                })
+            }
+        });
+
+        function checkCredentials() {
+            console.log("It is coming inside the function");
+            axios.get('http://64.227.27.167:1337/api/v1/login', {
+                auth: {
+                    username: $('#username').val(),
+                    password: $('#password').val()
+                }
+            }).then(function (res) {
+                console.log(res.data);
+                document.cookie = "token = " + res.data.token;
+                window.location = '/users';
+            }).catch(err => {
+                console.log(err);
+                alert("Invalid credentials!")
+            });
+        }
+
+    </script>
+</body>
+
+</html>

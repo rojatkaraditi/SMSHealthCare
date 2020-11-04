@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users</title>
+    <link rel="stylesheet" href="/homePage.css">
+
+    <link rel="stylesheet" type="text/css" href="/datatables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <a style="float: right; cursor:pointer" onclick="logout()"><i class="fa fa-fw fa-home"></i>Logout</a>
+            <p>Admin Portal</p>
+        </div>
+    </header>
+    <div class="table_area table_home">
+        <table id="table" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <th>Details</th>
+                <th>Phone Number</th>
+                <th>Subscription Date</th>
+                <th>Delete</th>
+            </thead>
+        </table>
+    </div>
+
+    <!-- JS SCRIPT -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js"
+        integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg=="
+        crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+
+            getUsers().then(function (res) {
+                // console.log(res.data);
+                var jsonData = res.data;
+
+                var dt = $('#table').DataTable({
+                    "scrollY": "400px",
+                    "scrollCollapse": true,
+                    "processing": true,
+                    "data": jsonData,
+                    "columns": [
+                        {
+                            "class": "details-control",
+                            "orderable": false,
+                            "data": null,
+                            "defaultContent": ""
+                        },
+                        { "data": "phoneNumber" },
+                        { "data": "date" },
+                        {
+                            "class": "details-delete",
+                            "orderable": false,
+                            "data": "",
+                            "defaultContent": ""
+                        }
+                    ],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
+                    "order": [[3, 'desc']]
+                });
+
+                // Array to track the ids of the details displayed rows
+                var detailRows = [];
+
+                $('#table tbody').on('click', 'tr td.details-control', function () {
+                    var tr = $(this).closest('tr');
+                    var row = dt.row(tr);
+
+                    //get the row index so that we can get the examiner details
+                    var index = row[0][0];
+
+                    var idx = $.inArray(tr.attr('id'), detailRows);
+
+                    if (row.child.isShown()) {
+                        tr.removeClass('details');
+                        row.child.hide();
+
+                        // Remove from the 'open' array
+                        detailRows.splice(idx, 1);
+                    }
+                    else {
+                        tr.addClass('details');
+                        row.child(format(row.data().history, index)).show();
+
+                        // Add to the 'open' array
+                        if (idx === -1) {
+                            detailRows.push(tr.attr('id'));
+                        }
+                    }
+                });
+
+                $('#table tbody').on('click', 'tr td.details-delete', function () {
+                    var answer = window.confirm("Are you sure you want to delete the user?");
+                    if (answer) {
+                        var tr = $(this).closest('tr');
+                        var row = dt.row(tr);
+                        deleteUser(row.data()._id).then(function () {
+                            alert("User Deleted Successfully");
+                            location.reload();
+                        }).catch(function (err) {
+                            if (err.response.data.error === 'could not find user with id: '+row.data()._id) {
+                                alert("sorry, user not found. User might already be deleted from the database!");
+                                location.reload();
+                            }else{
+                                alert("Session is expired. Please login again");
+                                window.location = "/";
+                            }
+                        });
+                    }
+                });
+
+                // On each draw, loop over the `detailRows` array and show any child rows
+                dt.on('draw', function () {
+                    $.each(detailRows, function (i, id) {
+                        $('#' + id + ' td.details-control').trigger('click');
+                    });
+                });
+
+            }).catch(function (err) {
+                if (err.response.data.error === 'could not find any users') {
+                    var dt = $('#table').DataTable({
+                        "data": null,
+                        "columns": [
+                            {
+                                "class": "details-control",
+                                "orderable": false,
+                                "data": null,
+                                "defaultContent": ""
+                            },
+                            { "data": null },
+                            { "data": null },
+                            { "data": null }
+                        ],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "order": [[3, 'desc']]
+                    });
+                } else {
+                    alert("Session expired. Please login again!!");
+                    window.location = '/';
+                }
+            });
+        });
+
+        function format(d, index) {
+            var detailValue = "";
+            for (var i = 0; i < d.length; i++) {
+                detailValue += d[i].symptom
+                    + " - " + d[i].severityText
+                    + " : " + d[i].severity + "<br/>";
+            }
+            if (detailValue === "") {
+                return "No Symptoms has been recorded yet"
+            } else {
+                return detailValue;
+            }
+
+        }
+
+        function formatDate(date) {
+            var d = new Date(date),
+                month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+
+            if (month.length < 2)
+                month = '0' + month;
+            if (day.length < 2)
+                day = '0' + day;
+
+            return [day, month, year].join('/');
+        }
+
+        function getUsers() {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('token'))
+                .split('=')[1];
+            const config = {
+                headers: { Authorization: 'Bearer ' + cookieValue }
+            };
+            return axios.get('http://64.227.27.167:1337/api/v1/admin/users', config);
+        }
+
+        function deleteUser(userId) {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('token'))
+                .split('=')[1];
+            const config = {
+                headers: { Authorization: 'Bearer ' + cookieValue }
+            };
+            return axios.delete('http://64.227.27.167:1337/api/v1/admin/users/' + userId, config);
+        }
+
+        function logout() {
+            document.cookie = "token = ";
+            window.location = "/";
+        }
+
+    </script>
+
+
+
+</body>
+
+</html>
