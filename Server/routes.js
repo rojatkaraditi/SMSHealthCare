@@ -94,7 +94,7 @@ route.use('/admin',isAuthorisedAdmin);
 route.post('/sms',(request,response)=>{
     const twiml = new MessagingResponse();
     
-    if(!request.body || !request.body.Body){
+    if(!request.body || !request.body.Body || !request.body.From || !request.body.Body.trim() || !request.body.From.trim() || !request.body.To || !request.body.To.trim()){
         twiml.message('No input provided. Please try again with input');
         closeConnection();
         response.writeHead(200, {'Content-Type': 'text/xml'});
