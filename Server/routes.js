@@ -113,7 +113,7 @@ route.post('/sms',(request,response)=>{
         var query = {"phoneNumber" : phoneNumber};
         console.log(phoneNumber);
         collection.find(query).toArray((err,res)=>{
-            console("entity created");
+            console.log("entity created");
             if(err){
                 twiml.message('Some error occured. Please try again');
                 closeConnection();
