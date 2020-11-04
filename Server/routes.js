@@ -96,7 +96,7 @@ route.use('/admin',isAuthorisedAdmin);
 
 route.post('/sms',(request,response)=>{
     const twiml = new MessagingResponse();
-    
+    console.log("sms api is called");
     if(!request.body || !request.body.Body || !request.body.From || !request.body.Body.trim() || !request.body.From.trim() || !request.body.To || !request.body.To.trim()){
         twiml.message('No input provided. Please try again with input');
         closeConnection();
@@ -106,10 +106,14 @@ route.post('/sms',(request,response)=>{
     }
    
     var text = request.body.Body.trim();
+    console.log("Text: " + text);
     if(text.toUpperCase() === 'START'){
+        console.log("inside start");
         var phoneNumber = request.body.From;
         var query = {"phoneNumber" : phoneNumber};
+        console.log(phoneNumber);
         collection.find(query).toArray((err,res)=>{
+            console("entity created");
             if(err){
                 twiml.message('Some error occured. Please try again');
                 closeConnection();
