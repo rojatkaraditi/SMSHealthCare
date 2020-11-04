@@ -7,6 +7,8 @@ const mongo = require('mongodb');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { requestBody, validationResult, body, header, param, query } = require('express-validator');
+const moment = require('moment-timezone');
+const authToken = require('./key');
 
 const route = express.Router();
 
@@ -84,7 +86,8 @@ var isAuthorisedAdmin = function(request,response,next){
     }
 };
 
- var smsclient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+ //var smsclient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+ var smsclient = new twilio('AC4795b2534203c3773f137726ffe95b28', authToken);
 
 route.use('/admin',verifyToken);
 route.use(connectToDb);
@@ -93,8 +96,8 @@ route.use('/admin',isAuthorisedAdmin);
 
 route.post('/sms',(request,response)=>{
     const twiml = new MessagingResponse();
-    
-    if(!request.body || !request.body.Body){
+    console.log("sms api is called");
+    if(!request.body || !request.body.Body || !request.body.From || !request.body.Body.trim() || !request.body.From.trim() || !request.body.To || !request.body.To.trim()){
         twiml.message('No input provided. Please try again with input');
         closeConnection();
         response.writeHead(200, {'Content-Type': 'text/xml'});
@@ -103,10 +106,14 @@ route.post('/sms',(request,response)=>{
     }
    
     var text = request.body.Body.trim();
+    console.log("Text: " + text);
     if(text.toUpperCase() === 'START'){
+        console.log("inside start");
         var phoneNumber = request.body.From;
         var query = {"phoneNumber" : phoneNumber};
+        console.log(phoneNumber);
         collection.find(query).toArray((err,res)=>{
+            console.log("entity created");
             if(err){
                 twiml.message('Some error occured. Please try again');
                 closeConnection();
@@ -129,11 +136,15 @@ route.post('/sms',(request,response)=>{
                 "Nausea",
                 "Fatigue",
                 "Sadness"
-            ]
+            ];
+
+            var date = new Date();
+            var dateWrapper = moment(date);
+            var dateString = dateWrapper.tz('America/New_York').format("YYYY MMM D HH:mm:ss"); 
 
             var newUser = {
                 "phoneNumber" : phoneNumber,
-                "date" : new Date().toISOString(),
+                "date" : dateString,
                 "step" : 1,
                 "history" : [],
                 "currentSymptom" : -1,
