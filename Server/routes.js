@@ -7,6 +7,8 @@ const mongo = require('mongodb');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { requestBody, validationResult, body, header, param, query } = require('express-validator');
+const moment = require('moment');
+const authToken = require('./key');
 
 const route = express.Router();
 
@@ -84,7 +86,8 @@ var isAuthorisedAdmin = function(request,response,next){
     }
 };
 
- var smsclient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+ //var smsclient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+ var smsclient = new twilio('AC4795b2534203c3773f137726ffe95b28', authToken);
 
 route.use('/admin',verifyToken);
 route.use(connectToDb);
@@ -129,11 +132,15 @@ route.post('/sms',(request,response)=>{
                 "Nausea",
                 "Fatigue",
                 "Sadness"
-            ]
+            ];
+
+            var date = new Date();
+            var dateWrapper = moment(date);
+            var dateString = dateWrapper.format("YYYY MMM D H:mm:ss"); 
 
             var newUser = {
                 "phoneNumber" : phoneNumber,
-                "date" : new Date().toISOString(),
+                "date" : dateString,
                 "step" : 1,
                 "history" : [],
                 "currentSymptom" : -1,
