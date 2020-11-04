@@ -139,8 +139,8 @@ route.post('/sms',(request,response)=>{
             ];
 
             var date = new Date();
-            var dateWrapper = moment(date);
-            var dateString = dateWrapper.format("YYYY MMM D H:mm:ss"); 
+            var dateWrapper = moment(date.toLocaleString());
+            var dateString = dateWrapper.format("YYYY MMM D HH:mm:ss"); 
 
             var newUser = {
                 "phoneNumber" : phoneNumber,
