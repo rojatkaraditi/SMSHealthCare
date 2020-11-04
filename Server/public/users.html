@@ -111,6 +111,7 @@
                         }).catch(function (err) {
                             if (err.response.data.error === 'could not find user with id: '+row.data()._id) {
                                 alert("sorry, user not found. User might already be deleted from the database!");
+                                location.reload();
                             }else{
                                 alert("Session is expired. Please login again");
                                 window.location = "/";
