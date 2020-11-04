@@ -23,6 +23,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js"
         integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg=="
         crossorigin="anonymous"></script>
+
+
     <script>
 
         $(document).ready(function () {
@@ -30,14 +32,19 @@
                 .split('; ')
                 .find(row => row.startsWith('token'))
                 .split('=')[1];
+            console.log(cookieValue);
             if (cookieValue != '') {
                 const config = {
                     headers: { Authorization: 'Bearer ' + cookieValue }
                 };
-                axios.get('http://64.227.27.167:1337/api/v1/admin/users', config).then(function (res) {
+                console.log("entering here");
+                axios.get('http://64.227.27.167:1337/api/v1/admin/users', config)
+                .then(function (res) {
                     window.location = '/users';
                 }).catch(function (err) {
-                    console.log(err);
+                    if(err.response.data.error === 'could not find any users'){
+                        window.location = '/users';
+                    }
                     console.log("Session is expired. Please login again");
                 })
             }
