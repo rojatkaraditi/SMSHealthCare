@@ -7,7 +7,7 @@ const mongo = require('mongodb');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { requestBody, validationResult, body, header, param, query } = require('express-validator');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const authToken = require('./key');
 
 const route = express.Router();
@@ -139,8 +139,8 @@ route.post('/sms',(request,response)=>{
             ];
 
             var date = new Date();
-            var dateWrapper = moment(date.toLocaleString());
-            var dateString = dateWrapper.format("YYYY MMM D HH:mm:ss"); 
+            var dateWrapper = moment(date);
+            var dateString = dateWrapper.tz('America/New_York').format("YYYY MMM D HH:mm:ss"); 
 
             var newUser = {
                 "phoneNumber" : phoneNumber,
